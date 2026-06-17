@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NextGen Creative Admin Panel | Frameboxx Bandra</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red:#FF6A00;--red-dark:#CC4400;
+  --yellow:#FFB300;--yellow-dark:#E09500;
+  --charcoal:#120D00;--charcoal-light:#1A1200;
+  --cream:#FFF8E7;--text-muted:#B8A880;
+  --font-display:'Cormorant Garamond',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--charcoal);color:var(--cream);min-height:100vh}
+.container{max-width:1100px;margin:0 auto;padding:2rem 5%}
+.topbar{padding:1rem 5%;border-bottom:1px solid rgba(255,179,0,.15);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.2)}
+.topbar h1{font-family:var(--font-display);font-weight:300;font-size:1.5rem}
+.topbar h1 em{font-style:italic;color:var(--yellow)}
+.topbar .sub{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--yellow);margin-top:.2rem}
+
+.tabs{display:flex;gap:.5rem;margin-bottom:1.5rem}
+.tab{padding:.7rem 1.4rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,179,0,.15);cursor:pointer;font-size:.85rem;font-weight:600;letter-spacing:.04em}
+.tab.active{background:linear-gradient(135deg,var(--yellow),var(--yellow-dark));color:var(--charcoal);border-color:var(--yellow)}
+.tabcontent{display:none}
+.tabcontent.active{display:block}
+
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,179,0,.18);padding:2rem;margin-bottom:1.5rem}
+.card h2{font-family:var(--font-display);font-weight:300;font-size:1.5rem;margin-bottom:1.2rem}
+.card h2 em{font-style:italic;color:var(--yellow)}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{margin-bottom:1.2rem}
+label{display:block;font-size:.7rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--yellow-dark);margin-bottom:.4rem}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,179,0,.25);color:var(--cream);font-family:var(--font-body);font-size:.92rem;padding:.8rem 1rem;outline:none}
+input:focus,select:focus{border-color:var(--yellow)}
+select option{background:var(--charcoal)}
+
+.btn{display:inline-block;background:linear-gradient(135deg,var(--red),var(--red-dark));color:#fff;font-weight:700;font-size:.9rem;padding:.85rem 1.8rem;border:none;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
+.btn.yellow{background:linear-gradient(135deg,var(--yellow),var(--yellow-dark));color:var(--charcoal)}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.generated-box{margin-top:1.5rem;background:rgba(255,179,0,.08);border:1px solid var(--yellow);padding:1.5rem;display:none}
+.generated-box .code{font-family:var(--font-display);font-size:2.5rem;font-weight:700;color:var(--yellow);letter-spacing:.2em;text-align:center;margin-bottom:.5rem}
+.generated-box .details{font-size:.85rem;color:var(--text-muted);text-align:center;line-height:1.6}
+.copy-row{display:flex;gap:.6rem;margin-top:1rem;justify-content:center;flex-wrap:wrap}
+
+.sync-status{font-size:.75rem;text-align:center;margin-top:.8rem;padding:.4rem .8rem;border-radius:3px}
+.sync-ok{background:rgba(129,199,132,.15);color:#81C784}
+.sync-pending{background:rgba(255,179,0,.12);color:var(--yellow)}
+.sync-fail{background:rgba(239,154,154,.12);color:#EF9A9A}
+
+.offline-queue-bar{background:rgba(255,106,0,.15);border:1px solid var(--red);padding:.7rem 1rem;font-size:.8rem;margin-bottom:1rem;display:none;line-height:1.6}
+
+.filter-row{display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.2rem}
+.filter-row .form-group{margin-bottom:0;min-width:160px}
+.stat-pills{display:flex;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.04);border:1px solid rgba(255,179,0,.15);padding:.7rem 1.2rem;font-size:.8rem}
+.pill b{color:var(--yellow);font-family:var(--font-display);font-size:1.2rem;display:block}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th{background:rgba(255,179,0,.08);color:var(--yellow);text-align:left;padding:.7rem .9rem;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+td{padding:.65rem .9rem;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}
+tr:hover td{background:rgba(255,179,0,.04)}
+.status-used{color:#81C784;font-weight:700}
+.status-pending{color:#FFB300;font-weight:700}
+.refresh-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.loading{text-align:center;padding:2rem;color:var(--text-muted)}
+</style>
+</head>
+<body>
+
+<div id="loginGate" style="position:fixed;inset:0;background:var(--charcoal);z-index:9999;display:flex;align-items:center;justify-content:center">
+  <div style="max-width:380px;width:90%;background:rgba(255,255,255,.04);border:1px solid rgba(255,179,0,.22);padding:2.5rem;text-align:center">
+    <div style="font-family:var(--font-display);font-size:1.8rem;margin-bottom:.3rem;color:var(--yellow)">frameboxx<span style="font-size:.6em;vertical-align:super;color:var(--cream)">®</span></div>
+    <div style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--yellow);margin-bottom:1.5rem">Admin Access · F.A.S.P.</div>
+    <input type="password" id="loginPw" placeholder="Enter admin password" style="margin-bottom:1rem" onkeydown="if(event.key==='Enter')checkLogin()">
+    <div id="loginErr" style="color:#EF9A9A;font-size:.8rem;margin-bottom:1rem;display:none">Incorrect password.</div>
+    <button class="btn full" onclick="checkLogin()">Enter</button>
+  </div>
+</div>
+
+<div id="adminContent" style="display:none">
+
+<div class="topbar">
+  <div>
+    <h1>FRAMEBOXX <em>ASPIRE</em> Admin Panel</h1>
+    <div class="sub">Frameboxx Academic Scholarship Panel · F.A.S.P. · Bandra</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Offline queue warning -->
+  <div class="offline-queue-bar" id="offlineBar">
+    📶 <strong>Some codes are saved locally but not yet synced to JSONBin.</strong>
+    They are still valid and students can use them. Click <strong>Retry Sync</strong> to push them online.
+    <button class="btn yellow" onclick="retrySync()" style="margin-left:1rem;padding:.4rem .9rem;font-size:.75rem">Retry Sync</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('generate')">Generate Code</div>
+    <div class="tab" onclick="switchTab('dashboard')">Results Dashboard</div>
+  </div>
+
+  <!-- GENERATE CODE TAB -->
+  <div class="tabcontent active" id="tab-generate">
+    <div class="card">
+      <h2>Generate <em>Access Code</em></h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Student Full Name</label>
+          <input type="text" id="gen-name" placeholder="Enter student's full name">
+        </div>
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="tel" id="gen-mobile" placeholder="10-digit mobile number" maxlength="10">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Course Category</label>
+        <select id="gen-coursecat">
+          <option value="">Select course category</option>
+          <option value="career">Career Program (Max ₹25,000)</option>
+          <option value="shortterm">Short Term Course (Max ₹15,000)</option>
+          <option value="standalone">Stand Alone Course (Max ₹5,000)</option>
+        </select>
+      </div>
+      <div id="gen-error" style="color:#EF9A9A;font-size:.82rem;margin-bottom:1rem;display:none"></div>
+      <button class="btn" id="genBtn" onclick="generateCode()">Generate Unique Code</button>
+
+      <div class="generated-box" id="generatedBox">
+        <div class="code" id="genCodeDisplay">------</div>
+        <div class="details" id="genDetailsDisplay"></div>
+        <div id="syncStatus" class="sync-status sync-pending">⏳ Syncing to cloud…</div>
+        <div class="copy-row">
+          <button class="btn yellow" onclick="copyCode()">Copy Code</button>
+          <button class="btn yellow" onclick="copyWhatsAppMsg()">Copy WhatsApp Message</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD TAB -->
+  <div class="tabcontent" id="tab-dashboard">
+    <div class="card">
+      <div class="refresh-bar">
+        <h2 style="margin-bottom:0">Results <em>Dashboard</em></h2>
+        <button class="btn yellow" onclick="loadDashboard()">↻ Refresh</button>
+      </div>
+
+      <div class="filter-row">
+        <div class="form-group">
+          <label>From Date</label>
+          <input type="date" id="filterFrom">
+        </div>
+        <div class="form-group">
+          <label>To Date</label>
+          <input type="date" id="filterTo">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="filterStatus">
+            <option value="">All</option>
+            <option value="used">Completed</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Course Category</label>
+          <select id="filterCourse">
+            <option value="">All</option>
+            <option value="career">Career Program</option>
+            <option value="shortterm">Short Term Course</option>
+            <option value="standalone">Stand Alone Course</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Search Name/Mobile</label>
+          <input type="text" id="filterSearch" placeholder="Search...">
+        </div>
+        <button class="btn" onclick="applyFilters()">Apply Filters</button>
+        <button class="btn yellow" onclick="clearFilters()">Clear</button>
+      </div>
+
+      <div class="stat-pills" id="statPills"></div>
+
+      <div class="table-wrap">
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Name</th>
+              <th>Mobile</th>
+              <th>Code</th>
+              <th>Course Category</th>
+              <th>Status</th>
+              <th>Score</th>
+              <th>%</th>
+              <th>Scholarship</th>
+              <th>Tier</th>
+              <th>Email</th>
+              <th>Program</th>
+            </tr>
+          </thead>
+          <tbody id="resultsTbody">
+            <tr><td colspan="12" class="loading">Click "Refresh" to load data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ CONFIG ============ */
+const JSONBIN_BIN_ID  = "6a32662bda38895dfecf11bb";
+const JSONBIN_API_KEY = "$2a$10$O7rCckC4ukVLcVWBoCiHseNAtK1gAe/XZ2fmmN5XlCwzClA1Q8uaC";
+const JSONBIN_BASE    = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+const COURSE_LABELS   = {career:"Career Program",shortterm:"Short Term Course",standalone:"Stand Alone Course"};
+const COURSE_MAX      = {career:'₹25,000',shortterm:'₹15,000',standalone:'₹5,000'};
+
+/* ── LOCAL STORAGE HELPERS ────────────────────────────────── */
+// All generated codes are ALWAYS saved to localStorage immediately.
+// JSONBin sync is attempted in background. If it fails, we queue for retry.
+
+function localGet(){
+  try{ return JSON.parse(localStorage.getItem('fb_codes') || '[]'); }catch(e){ return []; }
+}
+function localSave(codes){
+  localStorage.setItem('fb_codes', JSON.stringify(codes));
+}
+function queueGet(){
+  try{ return JSON.parse(localStorage.getItem('fb_syncQueue') || '[]'); }catch(e){ return []; }
+}
+function queueSave(q){
+  localStorage.setItem('fb_syncQueue', JSON.stringify(q));
+}
+
+/* ── JSONBIN HELPERS ──────────────────────────────────────── */
+async function jsonbinGet(){
+  const res = await fetch(`${JSONBIN_BASE}/latest`,{
+    headers:{ 'X-Master-Key': JSONBIN_API_KEY }
+  });
+  if(!res.ok) throw new Error('GET '+res.status);
+  const j = await res.json();
+  return j.record && j.record.codes ? j.record : {codes:[]};
+}
+async function jsonbinPut(data){
+  const res = await fetch(JSONBIN_BASE,{
+    method:'PUT',
+    headers:{ 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_API_KEY },
+    body: JSON.stringify(data)
+  });
+  if(!res.ok) throw new Error('PUT '+res.status);
+}
+
+/* ── SYNC QUEUE RETRY ─────────────────────────────────────── */
+async function retrySync(){
+  const queue = queueGet();
+  if(queue.length === 0){ updateOfflineBar(); return; }
+  try{
+    const remote = await jsonbinGet();
+    const remoteCodes = remote.codes || [];
+    // merge: add any queued codes not already in remote
+    for(const rec of queue){
+      if(!remoteCodes.some(r=>r.code===rec.code)) remoteCodes.push(rec);
+    }
+    await jsonbinPut({codes: remoteCodes});
+    queueSave([]); // clear queue
+    updateOfflineBar();
+    alert('✅ Sync successful! All codes are now online.');
+  }catch(e){
+    alert('Sync failed: ' + e.message + '\nCodes are still saved locally and usable.');
+  }
+}
+
+function updateOfflineBar(){
+  const q = queueGet();
+  document.getElementById('offlineBar').style.display = q.length > 0 ? 'block' : 'none';
+}
+
+/* ── TABS ─────────────────────────────────────────────────── */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tabcontent').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.tab:nth-child(${name==='generate'?1:2})`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+  if(name==='dashboard') loadDashboard();
+}
+
+/* ── CODE GENERATION ──────────────────────────────────────── */
+function genRandomCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+
+let lastGenerated = null;
+
+async function generateCode(){
+  const name      = document.getElementById('gen-name').value.trim();
+  const mobile    = document.getElementById('gen-mobile').value.trim();
+  const coursecat = document.getElementById('gen-coursecat').value;
+  const errEl     = document.getElementById('gen-error');
+  const btn       = document.getElementById('genBtn');
+  const mobileOk  = /^[0-9]{10}$/.test(mobile);
+
+  if(!name || !mobileOk || !coursecat){
+    errEl.style.display='block';
+    if(!name)          errEl.textContent = "Please enter the student's name.";
+    else if(!mobileOk) errEl.textContent = "Please enter a valid 10-digit mobile number.";
+    else               errEl.textContent = "Please select a course category.";
+    return;
+  }
+  errEl.style.display='none';
+  btn.disabled = true;
+  btn.textContent = "Generating…";
+
+  // ── STEP 1: Generate code and save locally IMMEDIATELY ────
+  const localCodes = localGet();
+  let code;
+  do { code = genRandomCode(); } while(localCodes.some(r=>r.code===code));
+
+  const record = { code, name, mobile, coursecat, used:false, generatedAt: new Date().toISOString() };
+  localCodes.push(record);
+  localSave(localCodes);
+  lastGenerated = record;
+
+  // ── STEP 2: Show code immediately — no waiting ────────────
+  document.getElementById('genCodeDisplay').textContent = code;
+  document.getElementById('genDetailsDisplay').innerHTML =
+    `<strong>${name}</strong> · ${mobile}<br>${COURSE_LABELS[coursecat]} · Max scholarship: ${COURSE_MAX[coursecat]}`;
+  const syncEl = document.getElementById('syncStatus');
+  syncEl.className = 'sync-status sync-pending';
+  syncEl.textContent = '⏳ Syncing to cloud…';
+  document.getElementById('generatedBox').style.display = 'block';
+
+  // Clear form
+  document.getElementById('gen-name').value='';
+  document.getElementById('gen-mobile').value='';
+  document.getElementById('gen-coursecat').value='';
+  btn.disabled=false;
+  btn.textContent="Generate Unique Code";
+
+  // ── STEP 3: Sync to JSONBin in background ─────────────────
+  syncToCloud(record, syncEl);
+}
+
+async function syncToCloud(record, syncEl){
+  try{
+    const remote = await jsonbinGet();
+    const codes  = remote.codes || [];
+    if(!codes.some(r=>r.code===record.code)) codes.push(record);
+    await jsonbinPut({codes});
+    syncEl.className = 'sync-status sync-ok';
+    syncEl.textContent = '✅ Synced to cloud successfully';
+    // remove from queue if it was there
+    const q = queueGet().filter(r=>r.code!==record.code);
+    queueSave(q);
+    updateOfflineBar();
+  }catch(e){
+    // Add to retry queue
+    const q = queueGet();
+    if(!q.some(r=>r.code===record.code)) q.push(record);
+    queueSave(q);
+    syncEl.className = 'sync-status sync-fail';
+    syncEl.textContent = '⚠️ Cloud sync failed — code saved locally. Student can still use it. Retry sync when online.';
+    updateOfflineBar();
+    console.warn('JSONBin sync failed:', e.message);
+  }
+}
+
+/* ── COPY HELPERS ─────────────────────────────────────────── */
+function copyCode(){
+  if(!lastGenerated) return;
+  navigator.clipboard.writeText(lastGenerated.code);
+  alert('Code copied: ' + lastGenerated.code);
+}
+
+function copyWhatsAppMsg(){
+  if(!lastGenerated) return;
+  const msg =
+`🎬 *NextGen Creative Aptitude Test*
+
+Hi ${lastGenerated.name}!
+
+You have been registered for the Frameboxx Bandra Scholarship Assessment. Here are your login details:
+
+👤 *Name:* ${lastGenerated.name}
+📱 *Mobile:* ${lastGenerated.mobile}
+🔑 *Access Code:* *${lastGenerated.code}*
+
+Use these exact details to start your test. The assessment is 20 minutes long and you can win a scholarship of up to *${COURSE_MAX[lastGenerated.coursecat]}*.
+
+👉 Test Link: https://frameboxx.github.io/NextGenCreativeTest/
+
+Good luck! 🌟
+
+— Frameboxx Bandra
+Besides Lucky Restaurant, God's Gift Tower, 702, Hill Rd, Bandra West, Mumbai – 400050
+📞 8828821415`;
+  navigator.clipboard.writeText(msg);
+  alert('WhatsApp message copied to clipboard!');
+}
+
+/* ── DASHBOARD ────────────────────────────────────────────── */
+let allRecords = [];
+
+async function loadDashboard(){
+  const tbody = document.getElementById('resultsTbody');
+  tbody.innerHTML = '<tr><td colspan="12" class="loading">Loading…</td></tr>';
+  try{
+    const remote = await jsonbinGet();
+    const remoteCodes = remote.codes || [];
+    // Merge with local: local may have newer unsynced codes
+    const local = localGet();
+    const merged = [...remoteCodes];
+    for(const loc of local){
+      if(!merged.some(r=>r.code===loc.code)) merged.push(loc);
+    }
+    allRecords = merged;
+    applyFilters();
+  }catch(e){
+    // Fall back to local only
+    console.warn('Dashboard using local data:', e.message);
+    allRecords = localGet();
+    applyFilters();
+    tbody.querySelector && (tbody.innerHTML += `<tr><td colspan="12" style="color:#EF9A9A;font-size:.75rem;text-align:center;padding:.5rem">⚠️ Showing local data only — cloud sync unavailable</td></tr>`);
+  }
+}
+
+function applyFilters(){
+  const from   = document.getElementById('filterFrom').value;
+  const to     = document.getElementById('filterTo').value;
+  const status = document.getElementById('filterStatus').value;
+  const course = document.getElementById('filterCourse').value;
+  const search = document.getElementById('filterSearch').value.trim().toLowerCase();
+
+  let filtered = allRecords.filter(r=>{
+    if(status === 'used'    && !r.used) return false;
+    if(status === 'pending' && r.used)  return false;
+    if(course && r.coursecat !== course) return false;
+    if(search && !(
+      r.name.toLowerCase().includes(search) ||
+      r.mobile.includes(search) ||
+      r.code.toLowerCase().includes(search)
+    )) return false;
+    const dateStr = r.result?.timestamp || r.generatedAt;
+    if(from || to){
+      const d = new Date(dateStr);
+      if(from && d < new Date(from)) return false;
+      if(to   && d > new Date(to+'T23:59:59')) return false;
+    }
+    return true;
+  });
+
+  renderTable(filtered);
+  renderStats(filtered);
+}
+
+function clearFilters(){
+  ['filterFrom','filterTo','filterStatus','filterCourse','filterSearch'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  applyFilters();
+}
+
+function renderStats(records){
+  const total      = records.length;
+  const completed  = records.filter(r=>r.used).length;
+  const pending    = total - completed;
+  const totalSch   = records.filter(r=>r.used&&r.result?.passed).reduce((s,r)=>s+(r.result.schAmount||0),0);
+  const avgPct     = completed > 0
+    ? (records.filter(r=>r.used&&r.result).reduce((s,r)=>s+(parseFloat(r.result.pct)||0),0)/completed).toFixed(1)
+    : '—';
+  document.getElementById('statPills').innerHTML = `
+    <div class="pill"><b>${total}</b>Total Codes</div>
+    <div class="pill"><b>${completed}</b>Tests Completed</div>
+    <div class="pill"><b>${pending}</b>Pending</div>
+    <div class="pill"><b>₹${totalSch.toLocaleString('en-IN')}</b>Scholarships Awarded</div>
+    <div class="pill"><b>${avgPct}${avgPct!=='—'?'%':''}</b>Avg. Score</div>
+  `;
+}
+
+function renderTable(records){
+  const tbody = document.getElementById('resultsTbody');
+  if(!records.length){
+    tbody.innerHTML='<tr><td colspan="12" class="loading">No records match.</td></tr>';
+    return;
+  }
+  records.sort((a,b)=>new Date(b.result?.timestamp||b.generatedAt)-new Date(a.result?.timestamp||a.generatedAt));
+  tbody.innerHTML = records.map(r=>{
+    const d = new Date(r.result?.timestamp||r.generatedAt);
+    const dateDisplay = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const res = r.result||{};
+    return `<tr>
+      <td>${dateDisplay}</td>
+      <td>${r.name}</td>
+      <td>${r.mobile}</td>
+      <td><strong style="color:var(--yellow)">${r.code}</strong></td>
+      <td>${COURSE_LABELS[r.coursecat]||r.coursecat}</td>
+      <td>${r.used?'<span class="status-used">✓ Completed</span>':'<span class="status-pending">⏳ Pending</span>'}</td>
+      <td>${r.used?`${res.score} / ${res.total}`:'—'}</td>
+      <td>${r.used?res.pct+'%':'—'}</td>
+      <td>${r.used?(res.passed?'₹'+(res.schAmount||0).toLocaleString('en-IN'):'—'):'—'}</td>
+      <td>${r.used?(res.passed?'<span class="status-used">PASS</span>':'<span style="color:#EF9A9A;font-weight:700">FAIL</span>'):'—'}</td>
+      <td>${r.used?(res.email||'—'):'—'}</td>
+      <td>${r.used?(res.program||'—'):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── AUTH ─────────────────────────────────────────────────── */
+const ADMIN_PASSWORD = "Frame@Bandra123";
+function checkLogin(){
+  const pw = document.getElementById('loginPw').value;
+  if(pw === ADMIN_PASSWORD){
+    document.getElementById('loginGate').style.display='none';
+    document.getElementById('adminContent').style.display='block';
+    sessionStorage.setItem('frameboxxAdminAuth','1');
+    updateOfflineBar();
+  } else {
+    document.getElementById('loginErr').style.display='block';
+  }
+}
+if(sessionStorage.getItem('frameboxxAdminAuth')==='1'){
+  document.getElementById('loginGate').style.display='none';
+  document.getElementById('adminContent').style.display='block';
+  updateOfflineBar();
+}
+</script>
+</div>
+</body>
+</html>
